@@ -1,0 +1,188 @@
+import java.util.Scanner; 
+class BullyAlgorithm { 
+    private int numProcesses; 
+    private int coordinator; 
+    private boolean[] activeProcesses; // Track active processes 
+    // Constructor initializes processes and sets up the crashed process 
+    public BullyAlgorithm(int numProcesses) { 
+        this.numProcesses = numProcesses; 
+        this.activeProcesses = new boolean[numProcesses]; 
+        // Initially, all processes are active 
+        for (int i = 0; i < numProcesses; i++) { 
+            activeProcesses[i] = true; 
+        } 
+        // Assume the highest-numbered process is the initial coordinator 
+        coordinator = numProcesses - 2;  // Second-highest process is the initial coordinator 
+        System.out.println("Initial Coordinator: Process " + coordinator); 
+    } 
+    // Start the election process from a given initiator process 
+    public void startElection(int initiator) { 
+        System.out.println("\nProcess " + initiator + " is initiating an election..."); 
+        // Step 1: Send election requests to all higher-numbered processes 
+        for (int i = initiator + 1; i < numProcesses; i++) { 
+            if (activeProcesses[i]) { 
+                System.out.println("Process " + initiator + " -> Process " + i + " (ELECTION)"); 
+            } 
+        } 
+        // Step 2: Simulate OK responses from processes 
+        simulateElectionResponses(initiator); 
+        // Step 3: Determine the new coordinator 
+        determineCoordinator(initiator); 
+    } 
+ 
+    // Simulate the OK responses from the processes 
+    private void simulateElectionResponses(int initiator) { 
+        System.out.println("\nWaiting for OK responses..."); 
+        for (int i = initiator + 1; i < numProcesses; i++) { 
+            // Skip the crashed process (highest-numbered process) 
+            if (i == numProcesses - 1) { 
+                System.out.println("Process " + i + " has crashed and does not respond."); 
+            } else { 
+                System.out.println("Process " + i + " -> Process " + initiator + " (OK)"); 
+            } 
+        } 
+    } 
+    // Determine the new coordinator after receiving responses 
+    private void determineCoordinator(int initiator) { 
+        // Check if any higher process is willing to take over the election 
+        boolean newCoordinatorFound = false; 
+        for (int i = initiator + 1; i < numProcesses; i++) { 
+            if (i == numProcesses - 1) { 
+                continue;  // Skip the crashed process 
+            } 
+            if (i > initiator) { 
+                System.out.println("Process " + i + " takes over the election."); 
+                startElection(i);  // Higher process takes over the election 
+                newCoordinatorFound = true; 
+                return; 
+            } 
+        } 
+        // If no higher process took over, the initiator becomes the coordinator 
+        if (!newCoordinatorFound) { 
+            coordinator = initiator; 
+            System.out.println("Process " + coordinator + " wins the election and becomes the new 
+coordinator."); 
+            announceNewCoordinator(); 
+        } 
+    } 
+    // Announce the new coordinator to all processes 
+    private void announceNewCoordinator() { 
+        for (int i = 0; i < numProcesses; i++) { 
+            if (i != coordinator && activeProcesses[i]) { 
+                System.out.println("Process " + coordinator + " -> Process " + i + " (COORDINATOR)"); 
+            } 
+        } 
+    } 
+    public static void main(String[] args) { 
+        Scanner scanner = new Scanner(System.in); 
+        // Read number of processes from the user 
+        System.out.print("Enter the number of processes: "); 
+        int numProcesses = scanner.nextInt(); 
+        // Initialize the Bully Algorithm with the number of processes 
+        BullyAlgorithm bully = new BullyAlgorithm(numProcesses); 
+        // Read the initiator process that starts the election 
+        System.out.print("Enter the process to start the election: "); 
+        int initiator = scanner.nextInt(); 
+        if (initiator >= 0 && initiator < numProcesses) { 
+            bully.startElection(initiator); 
+        } else { 
+            System.out.println("Invalid process ID."); 
+        } 
+    } 
+} 
+
+  //javac BullyAlgorithm.java
+  //java BullyAlgorithm
+ 
+
+
+Ring Algorithm: 
+import java.util.Scanner; 
+import java.util.ArrayList; 
+import java.util.List; 
+class RingElection { 
+    private int numProcesses; 
+    private int coordinator; 
+    private boolean[] activeProcesses; 
+    public RingElection(int numProcesses) { 
+        this.numProcesses = numProcesses; 
+        this.activeProcesses = new boolean[numProcesses]; 
+        // Initially, all processes are active 
+        for (int i = 0; i < numProcesses; i++) { 
+            activeProcesses[i] = true; 
+        } 
+ 
+        // Assume the highest-numbered process is the initial coordinator 
+        coordinator = numProcesses - 1; 
+        System.out.println("Initial Coordinator: Process " + coordinator); 
+    } 
+    // Simulate the crash of Process 7 (index 6 if there are 7 processes) 
+    public void simulateCrash(int processId) { 
+        if (processId >= 0 && processId < numProcesses) { 
+            activeProcesses[processId] = false;  // Process is considered crashed 
+            System.out.println("Process " + processId + " has crashed!"); 
+        } else { 
+            System.out.println("Invalid process ID for crash simulation."); 
+        } 
+    } 
+    public void startElection(int initiator) { 
+        System.out.println("\nProcess " + initiator + " is initiating an election..."); 
+        // List to store the election path 
+        List<Integer> electionPath = new ArrayList<>(); 
+        electionPath.add(initiator); // Add initiator to the election path 
+        System.out.println("Election path: " + electionPath); // Display path after initiator 
+        int maxId = initiator; 
+        int current = (initiator + 1) % numProcesses; 
+        while (current != initiator) { 
+            if (activeProcesses[current]) { 
+                System.out.println("Process " + maxId + " -> Process " + current + " (ELECTION)"); 
+                electionPath.add(current); // Add current process to the election path 
+                System.out.println("Election path: " + electionPath); // Display updated path after each 
+step 
+                if (current > maxId) { 
+                    maxId = current; // Update max process ID 
+                } 
+            } else { 
+                System.out.println("Process " + current + " is skipped (CRASHED)."); 
+            } 
+            current = (current + 1) % numProcesses; 
+        } 
+        // The highest ID process becomes the coordinator 
+        coordinator = maxId; 
+        System.out.println("Process " + coordinator + " wins the election and becomes the new 
+coordinator."); 
+        announceNewCoordinator(); 
+    } 
+    private void announceNewCoordinator() { 
+        int current = (coordinator + 1) % numProcesses; 
+        while (current != coordinator) { 
+            if (activeProcesses[current]) { 
+                System.out.println("Process " + coordinator + " -> Process " + current + " (ELECTED)"); 
+            } 
+            current = (current + 1) % numProcesses; 
+        } 
+    } 
+    public static void main(String[] args) { 
+        Scanner scanner = new Scanner(System.in); 
+        // Read number of processes from the user 
+        System.out.print("Enter the number of processes: "); 
+        int numProcesses = scanner.nextInt(); 
+        // Initialize the RingElection with the number of processes 
+        RingElection ringElection = new RingElection(numProcesses); 
+        // Simulate a crash of Process 7 (if there are at least 7 processes) 
+        if (numProcesses >= 7) { 
+            ringElection.simulateCrash(6); // Process 7 crashes (index 6) 
+        } 
+        // Read the initiator process that starts the election 
+        System.out.print("Enter the process to start the election: "); 
+        int initiator = scanner.nextInt(); 
+        if (initiator >= 0 && initiator < numProcesses) { 
+            ringElection.startElection(initiator); 
+        } else { 
+System.out.println("Invalid process ID."); 
+} 
+} 
+}
+
+  //javac RingAlgorithm.java
+  //java Ring Algorithm

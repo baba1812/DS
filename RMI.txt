@@ -1,0 +1,51 @@
+//RemoteInterface.java 
+import java.rmi.*; 
+public interface RemoteInterface extends Remote { 
+    String reverseString(String input) throws RemoteException; 
+} 
+
+//ServerImplementation.java 
+import java.rmi.server.*; 
+import java.rmi.*; 
+public class ServerImplementation extends UnicastRemoteObject implements 
+RemoteInterface { 
+    protected ServerImplementation() throws RemoteException { super(); } 
+       public String reverseString(String input) throws RemoteException { 
+        return new StringBuilder(input).reverse().toString(); 
+    } 
+} 
+
+//Server.java 
+import java.rmi.*; 
+public class Server { 
+    public static void main(String[] args) throws Exception { 
+        System.setProperty("java.rmi.server.hostname", "127.0.0.1"); 
+        java.rmi.registry.LocateRegistry.createRegistry(1099); 
+        Naming.rebind("RemoteService", new ServerImplementation()); 
+        System.out.println("Server ready."); 
+    } 
+} 
+ 
+//Client.java 
+import java.rmi.*; 
+import java.util.*; 
+public class Client { 
+    public static void main(String[] args) throws Exception { 
+        RemoteInterface stub = (RemoteInterface) 
+Naming.lookup("rmi://localhost/RemoteService"); 
+        Scanner sc = new Scanner(System.in); 
+        System.out.print("Enter a string: "); 
+        System.out.println("Reversed: " + stub.reverseString(sc.nextLine())); 
+        sc.close(); 
+    } 
+} 
+
+  //first terminal - 
+    javac *.java
+    rmiregistry
+
+  //Second terminal - java Server.java
+
+  //Third terminal - java Client.java
+ 
+ 
